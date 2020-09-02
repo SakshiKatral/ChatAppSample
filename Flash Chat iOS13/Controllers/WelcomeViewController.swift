@@ -10,8 +10,10 @@ import UIKit
 import CLTypingLabel
 
 class WelcomeViewController: UIViewController {
-
+    //MARK: - Properties
     @IBOutlet weak var titleLabel: CLTypingLabel!
+    
+    //MARK: - ViewController LifeCycle Methods
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.isNavigationBarHidden = true
@@ -23,8 +25,8 @@ class WelcomeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         titleLabel.text = "⚡️FlashChat"
-       
+        
     }
     
-
+    
 }

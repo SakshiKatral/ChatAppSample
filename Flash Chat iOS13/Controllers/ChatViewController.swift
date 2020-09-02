@@ -10,14 +10,14 @@ import UIKit
 import Firebase
 
 class ChatViewController: UIViewController {
-    
+    //MARK: - Properties
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var messageTextfield: UITextField!
     let db = Firestore.firestore()
-    
     var  baseClass = BaseClass()
     var messages : [Message] = []
     
+    //MARK: - ViewController LifeCycle Methods
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.hidesBackButton = true
@@ -27,33 +27,38 @@ class ChatViewController: UIViewController {
         tableView.register(UINib(nibName: Constances.cellNibName, bundle: nil), forCellReuseIdentifier: Constances.cellIdentifier)
         readDataFromDtabase()
     }
-    
+}
+
+extension ChatViewController{
+    //MARK: - Read Data from Firebase FireStore
     func readDataFromDtabase() {
         
         db.collection(Constances.FStore.collectionName)
             .order(by: Constances.FStore.dateField)
             .addSnapshotListener { (querySnapshot, error) in
-            self.messages = []
-            if let error = error{
-                self.baseClass.alertController(with: error.localizedDescription)
-            }
-            else{
-                guard let querySnapshot = querySnapshot else { return }
-                for document in querySnapshot.documents{
-                    let data = document.data()
-                    if let sender = data[Constances.FStore.senderField] as? String, let messageBody = data[Constances.FStore.bodyField] as? String{
-                        let newMessage = Message(sender: sender, body: messageBody)
-                        self.messages.append(newMessage)
-                        DispatchQueue.main.async {
-                            self.tableView.reloadData()
-                            let indexPath = IndexPath(row: (self.messages.count - 1), section: 0)
-                            self.tableView.scrollToRow(at: indexPath, at: .top, animated: true)
+                self.messages = []
+                if let error = error{
+                    self.baseClass.alertController(with: error.localizedDescription)
+                }
+                else{
+                    guard let querySnapshot = querySnapshot else { return }
+                    for document in querySnapshot.documents{
+                        let data = document.data()
+                        if let sender = data[Constances.FStore.senderField] as? String, let messageBody = data[Constances.FStore.bodyField] as? String{
+                            let newMessage = Message(sender: sender, body: messageBody)
+                            self.messages.append(newMessage)
+                            DispatchQueue.main.async {
+                                self.tableView.reloadData()
+                                let indexPath = IndexPath(row: (self.messages.count - 1), section: 0)
+                                self.tableView.scrollToRow(at: indexPath, at: .top, animated: true)
+                            }
                         }
                     }
                 }
-            }
         }
     }
+    
+    //MARK: - Save Data to Firebase FireStore
     @IBAction func sendPressed(_ sender: UIButton) {
         guard let messageBody = messageTextfield.text, let messageSender = Auth.auth().currentUser?.email else{return}
         db.collection(Constances.FStore.collectionName).addDocument(data: [
@@ -70,6 +75,7 @@ class ChatViewController: UIViewController {
         }
     }
     
+    //MARK: - Logout Method
     @IBAction func logoutPressed(_ sender: UIBarButtonItem) {
         let firebaseAuth = Auth.auth()
         do {
@@ -89,7 +95,7 @@ extension ChatViewController: UITableViewDataSource{
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    
+        
         let message = messages[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: Constances.cellIdentifier, for: indexPath) as! MessageCell
         cell.messageLabel.text = messages[indexPath.row].body
